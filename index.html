@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0e1a">
-<title>مُعلّمي - صوت طبيعي مجاني</title>
+<title>مُعلّمي - محرك صوت متعدد</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--br:#1e2d45;--ac:#3b82f6;--ac2:#06b6d4;--gd:#f59e0b;--tx:#e2e8f0;--mu:#64748b;--gr:#10b981;--rd:#ef4444;--r:16px}
@@ -31,7 +31,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .btn{width:100%;padding:11px;border:none;border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;margin-bottom:8px}
 .btn-blue{background:var(--ac)}.btn-blue:hover{background:#2563eb}
 .btn-green{background:#059669}.btn-green:hover{background:#047857}
+.btn-purple{background:#8b5cf6}.btn-purple:hover{background:#7c3aed}
+.btn-orange{background:#d97706}.btn-orange:hover{background:#b45309}
+.btn-teal{background:#0d9488}.btn-teal:hover{background:#0f766e}
 .test-res{border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.6;display:none;margin-top:4px}
+.voice-sel{background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:12px}
+.voice-sel h4{font-size:12px;color:var(--mu);margin-bottom:10px}
+.voice-opts{display:flex;flex-direction:column;gap:6px}
+.voice-opt{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--br);border-radius:8px;cursor:pointer;transition:.2s}
+.voice-opt.selected{border-color:var(--ac);background:rgba(59,130,246,.08)}
+.voice-opt input{accent-color:var(--ac)}
+.voice-opt-info{flex:1}
+.voice-opt-name{font-size:13px;font-weight:600}
+.voice-opt-desc{font-size:11px;color:var(--mu)}
+.voice-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+.badge-free{background:rgba(16,185,129,.15);color:var(--gr)}
+.badge-best{background:rgba(245,158,11,.15);color:var(--gd)}
 .tabs{display:flex;background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:4px;margin-bottom:16px}
 .tab{flex:1;padding:10px;border:none;background:transparent;color:var(--mu);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;transition:.2s}
 .tab.on{background:var(--ac);color:#fff}
@@ -122,18 +137,58 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <body>
 <div class="app">
   <div class="hdr">
-    <div class="logo">مُعلّمي<span>صوت طبيعي مجاني</span></div>
+    <div class="logo">مُعلّمي<span>محرك صوت متعدد الاحتياطي</span></div>
     <button class="gear" onclick="toggleS()">⚙️</button>
   </div>
 
   <div class="sbox" id="sbox">
     <h3>🔑 إعدادات API</h3>
-    <div class="sbox-info">🔊 الصوت الآن يعمل تلقائياً بأفضل جودة ممكنة - يختار الخدمة الأنسب تلقائياً</div>
+    <div class="sbox-info">🔊 الاختيار الافتراضي "EdgeTTS Pro" يوفر صوتاً عالياً مجاناً. يمكنك إضافة مفاتيح الخدمات الأخرى لجودة أعلى.</div>
+    
+    <!-- Edge TTS Pro (Default) -->
+    <div class="voice-sel">
+      <h4>🌐 محرك الصوت الأساسي (مجاني عالي الجودة)</h4>
+      <div class="voice-opts">
+        <label class="voice-opt" id="vopt-edgetts">
+          <input type="radio" name="voice" value="edgetts" onchange="setActiveProvider('edgetts')">
+          <div class="voice-opt-info">
+            <div class="voice-opt-name">EdgeTTS Pro (موصى به)</div>
+            <div class="voice-opt-desc">مجاني — جودة عالية جداً ويعمل فوراً بدون إعدادات</div>
+          </div>
+          <span class="voice-badge badge-best">الأفضل حالياً</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Advanced API Keys -->
+    <div class="voice-sel">
+      <h4>⚙️ خيارات متقدمة (للحصول على أفضل جودة)</h4>
+      <div class="ig" id="fishKeyGroup">
+        <label>Fish Audio API Key</label>
+        <input type="password" id="fishKey" placeholder="...">
+        <div style="font-size:11px;color:var(--mu);margin-top:4px">احصل عليه مجاناً من: fish.audio/app/api-keys</div>
+        <button class="btn btn-purple" onclick="testFishKey()" style="margin-top:8px">🔍 اختبر مفتاح Fish Audio</button>
+      </div>
+      <div class="ig" id="azureKeyGroup">
+        <label>Azure Speech Key</label>
+        <input type="password" id="azureKey" placeholder="...">
+        <input type="text" id="azureRegion" placeholder="Region (e.g., eastus)">
+        <div style="font-size:11px;color:var(--mu);margin-top:4px">احصل عليه مجاناً من: portal.azure.com (500K حرف/شهر)</div>
+        <button class="btn btn-teal" onclick="testAzureKey()" style="margin-top:8px">🔍 اختبر مفتاح Azure</button>
+      </div>
+      <div class="ig" id="googleKeyGroup">
+        <label>Google TTS API Key</label>
+        <input type="password" id="googleKey" placeholder="...">
+        <div style="font-size:11px;color:var(--mu);margin-top:4px">احصل عليه مجاناً من: cloud.google.com (4M حرف/شهر)</div>
+        <button class="btn btn-orange" onclick="testGoogleKey()" style="margin-top:8px">🔍 اختبر مفتاح Google</button>
+      </div>
+    </div>
+
     <div class="ig">
-      <label>Groq API Key (مطلوب)</label>
+      <label>Groq API Key (مطلوب لتحليل الصور)</label>
       <input type="password" id="groqKey" placeholder="gsk_...">
     </div>
-    <button class="btn btn-blue" onclick="saveKeys()">💾 حفظ المفتاح</button>
+    <button class="btn btn-blue" onclick="saveKeys()">💾 حفظ جميع المفاتيح والإعدادات</button>
     <button class="btn btn-green" onclick="testGroq()">🔍 اختبر مفتاح Groq</button>
     <div class="test-res" id="testRes"></div>
   </div>
@@ -177,24 +232,45 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 <div class="ov" id="ov"><div class="sp"></div><div class="ot" id="ot">جاري التحليل...</div></div>
 
+<script src="https://unpkg.com/voipi@1.2.1/dist/voipi.umd.js"></script>
 <script>
+// --- 1. STATE & INITIALIZATION ---
 const S = {
   groq: localStorage.getItem('groq') || '',
+  fish: localStorage.getItem('fish') || '',
+  azureKey: localStorage.getItem('azureKey') || '',
+  azureRegion: localStorage.getItem('azureRegion') || '',
+  googleKey: localStorage.getItem('googleKey') || '',
   img64: null,
   lesson: null, questions: [], qIdx: 0, score: 0,
   recording: false, recorder: null, chunks: [],
   ttsAudio: null, ttsSpeaking: false,
   synth: window.speechSynthesis,
-  arVoice: null, enVoice: null
+  arVoice: null, enVoice: null,
+  activeProvider: localStorage.getItem('activeProvider') || 'edgetts', // Default to edgetts
+  tts: null
 };
 const VISION_MODELS = ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'];
 const TEXT_MODEL = 'llama-3.1-8b-instant';
 
 window.onload = () => {
   if (S.groq) document.getElementById('groqKey').value = S.groq;
+  if (S.fish) document.getElementById('fishKey').value = S.fish;
+  if (S.azureKey) document.getElementById('azureKey').value = S.azureKey;
+  if (S.azureRegion) document.getElementById('azureRegion').value = S.azureRegion;
+  if (S.googleKey) document.getElementById('googleKey').value = S.googleKey;
   if (!S.groq) document.getElementById('sbox').classList.add('open');
   loadVoices();
+  initTTS();
+  document.getElementById(`vopt-${S.activeProvider}`)?.classList.add('selected');
+  document.querySelector(`input[value="${S.activeProvider}"]`).checked = true;
+  console.log('Active TTS Provider:', S.activeProvider);
 };
+
+function initTTS() {
+  S.tts = new Voipi.TTS();
+}
+
 function loadVoices() {
   const load = () => {
     const v = S.synth.getVoices();
@@ -204,14 +280,22 @@ function loadVoices() {
   load();
   if (S.synth.onvoiceschanged !== undefined) S.synth.onvoiceschanged = load;
 }
+
 function toggleS() { document.getElementById('sbox').classList.toggle('open'); }
-function saveKeys() {
-  const g = document.getElementById('groqKey').value.trim();
-  if (!g) { alert('أدخل مفتاح Groq'); return; }
-  S.groq = g; localStorage.setItem('groq', g);
-  showRes('✅ تم حفظ مفتاح Groq', 'ok');
-  setTimeout(() => document.getElementById('sbox').classList.remove('open'), 1500);
+function sw(t) {
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(t==='learn'&&i===0)||(t==='review'&&i===1)));
+  document.getElementById('learnTab').classList.toggle('hidden',t!=='learn');
+  document.getElementById('reviewTab').classList.toggle('hidden',t!=='review');
 }
+
+// --- 2. API KEY MANAGEMENT & TESTING ---
+function setActiveProvider(provider) {
+  S.activeProvider = provider;
+  localStorage.setItem('activeProvider', provider);
+  document.querySelectorAll('.voice-opt').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`vopt-${provider}`).classList.add('selected');
+}
+
 async function testGroq() {
   const g = document.getElementById('groqKey').value.trim();
   if (!g) { alert('أدخل المفتاح أولاً'); return; }
@@ -227,6 +311,73 @@ async function testGroq() {
     showRes('✅ مفتاح Groq يعمل! جاهز للاستخدام 🎉', 'ok');
   } catch(e) { showRes('❌ ' + e.message, 'err'); }
 }
+
+async function testFishKey() {
+  const fishKey = document.getElementById('fishKey').value.trim();
+  if (!fishKey) { alert('أدخل مفتاح Fish Audio أولاً'); return; }
+  showRes('⏳ جاري اختبار Fish Audio...', 'info');
+  try {
+    const response = await fetch('https://api.fish.audio/v1/tts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${fishKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: 'Hello, testing Fish Audio key.',
+        format: 'mp3'
+      })
+    });
+    if (!response.ok) throw new Error('Invalid key or quota exceeded');
+    showRes('✅ مفتاح Fish Audio صالح!', 'ok');
+  } catch(e) { showRes('❌ مفتاح Fish Audio غير صالح: ' + e.message, 'err'); }
+}
+
+async function testAzureKey() {
+  const azureKey = document.getElementById('azureKey').value.trim();
+  const azureRegion = document.getElementById('azureRegion').value.trim();
+  if (!azureKey || !azureRegion) { alert('أدخل مفتاح Azure والمنطقة'); return; }
+  showRes('⏳ جاري اختبار Azure...', 'info');
+  try {
+    const response = await fetch(`https://${azureRegion}.tts.speech.microsoft.com/cognitiveservices/voices/list`, {
+      method: 'GET',
+      headers: { 'Ocp-Apim-Subscription-Key': azureKey }
+    });
+    if (!response.ok) throw new Error('Invalid key or region');
+    showRes('✅ مفتاح Azure صالح!', 'ok');
+  } catch(e) { showRes('❌ ' + e.message, 'err'); }
+}
+
+async function testGoogleKey() {
+  const googleKey = document.getElementById('googleKey').value.trim();
+  if (!googleKey) { alert('أدخل مفتاح Google أولاً'); return; }
+  showRes('⏳ جاري اختبار Google...', 'info');
+  try {
+    const response = await fetch('https://texttospeech.googleapis.com/v1/voices', {
+      headers: { 'X-Goog-Api-Key': googleKey }
+    });
+    if (!response.ok) throw new Error('Invalid key');
+    showRes('✅ مفتاح Google صالح!', 'ok');
+  } catch(e) { showRes('❌ ' + e.message, 'err'); }
+}
+
+function saveKeys() {
+  const g = document.getElementById('groqKey').value.trim();
+  const f = document.getElementById('fishKey').value.trim();
+  const azk = document.getElementById('azureKey').value.trim();
+  const azr = document.getElementById('azureRegion').value.trim();
+  const ggk = document.getElementById('googleKey').value.trim();
+  if (!g) { alert('أدخل مفتاح Groq'); return; }
+  S.groq = g; S.fish = f; S.azureKey = azk; S.azureRegion = azr; S.googleKey = ggk;
+  localStorage.setItem('groq', g);
+  localStorage.setItem('fish', f);
+  localStorage.setItem('azureKey', azk);
+  localStorage.setItem('azureRegion', azr);
+  localStorage.setItem('googleKey', ggk);
+  showRes('✅ تم حفظ جميع المفاتيح والإعدادات', 'ok');
+  setTimeout(() => document.getElementById('sbox').classList.remove('open'), 1500);
+}
+
 function showRes(txt, type) {
   const b = document.getElementById('testRes');
   b.style.display='block';
@@ -235,11 +386,77 @@ function showRes(txt, type) {
   b.style.color=type==='ok'?'#6ee7b7':type==='err'?'#fca5a5':'#93c5fd';
   b.textContent=txt;
 }
-function sw(t) {
-  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(t==='learn'&&i===0)||(t==='review'&&i===1)));
-  document.getElementById('learnTab').classList.toggle('hidden',t!=='learn');
-  document.getElementById('reviewTab').classList.toggle('hidden',t!=='review');
+
+// --- 3. AUDIO PLAYBACK (CORE FIX) ---
+async function speakWithFallback(text, isArabic) {
+    if (!text) return;
+    stopTTS();
+    document.getElementById('ttsBar').classList.add('show');
+    document.getElementById('ttsTxt').innerHTML = "جاري تشغيل الصوت...";
+    
+    // Use voipi library for high-quality fallback
+    const voipi = new Voipi.TTS();
+    try {
+        console.log("Attempting Voipi speak...");
+        await voipi.speak(text);
+        console.log("Voipi speak finished.");
+        document.getElementById('ttsBar').classList.remove('show');
+        return;
+    } catch (e) {
+        console.error("Voipi error:", e);
+        // Fallback to Web Speech API
+        console.log("Falling back to Web Speech API...");
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = isArabic ? 'ar-SA' : 'en-US';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+            utterance.onend = () => document.getElementById('ttsBar').classList.remove('show');
+            utterance.onerror = () => document.getElementById('ttsBar').classList.remove('show');
+        } else {
+            document.getElementById('ttsBar').classList.remove('show');
+            alert('⚠️ لم يتم العثور على محرك صوت في متصفحك!');
+        }
+    }
 }
+
+async function tts(text, lang='auto') {
+  if(!text?.trim()) return;
+  stopTTS();
+  const isAr = lang==='ar' || (lang==='auto' && /[\u0600-\u06FF]/.test(text));
+  document.getElementById('ttsTxt').textContent = isAr ? '🔊 جاري القراءة بالعربية...' : '🔊 جاري القراءة بالإنجليزية...';
+  document.getElementById('ttsBar').classList.add('show');
+  
+  // Use the speakWithFallback function which prioritizes Voipi
+  await speakWithFallback(text, isAr);
+}
+
+function stopTTS() {
+  if(S.ttsAudio){ S.ttsAudio.pause(); S.ttsAudio=null; }
+  if(S.synth) S.synth.cancel();
+  S.ttsSpeaking=false;
+  document.getElementById('ttsBar').classList.remove('show');
+}
+
+async function spkW(word, btn) {
+  stopTTS();
+  btn.classList.add('pl');
+  await tts(word,'en');
+  setTimeout(()=>btn.classList.remove('pl'),2000);
+}
+async function speakAll() {
+  if(!S.lesson) return;
+  const btn=document.getElementById('spkallBtn');
+  if(S.ttsSpeaking){ stopTTS(); btn.textContent='🔊 استمع'; return; }
+  btn.textContent='⏸ إيقاف';
+  let t=`درس ${S.lesson.title}. `;
+  S.lesson.words.forEach(w=>{ t+=`${w.arabic}: ${w.english}. `; });
+  if(S.lesson.story_summary?.trim()) t+=`ملخص النص: ${S.lesson.story_summary}`;
+  await tts(t,'ar');
+  btn.textContent='🔊 استمع';
+}
+
+// --- 4. IMAGE ANALYSIS ---
 function handleFile(e) {
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -319,126 +536,7 @@ function renderLesson() {
   document.getElementById('lacts').style.display='flex';
 }
 
-// ================== نظام الصوت الذكي متعدد المستويات ==================
-async function tts(text, lang='auto') {
-  if(!text?.trim()) return;
-  stopTTS();
-  const isAr = lang==='ar' || (lang==='auto' && /[\u0600-\u06FF]/.test(text));
-  document.getElementById('ttsTxt').textContent = isAr ? '🔊 جاري القراءة بالعربية...' : '🔊 جاري القراءة بالإنجليزية...';
-  document.getElementById('ttsBar').classList.add('show');
-  
-  // 1. المحاولة باستخدام VoiPi API (وكيل لـ Edge TTS)
-  try {
-    console.log('محاولة 1: VoiPi API...');
-    const voice = isAr ? 'ar-EG-ShakirNeural' : 'en-US-JennyNeural';
-    const response = await fetch('https://voipi.vercel.app/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, format: 'mp3' })
-    });
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      S.ttsAudio = new Audio(url);
-      S.ttsSpeaking = true;
-      S.ttsAudio.onended = () => hideTTSBar();
-      S.ttsAudio.onerror = () => { hideTTSBar(); fallbackTTS(text, isAr); };
-      await S.ttsAudio.play();
-      return;
-    }
-  } catch(e) { console.warn('VoiPi API failed:', e); }
-  
-  // 2. المحاولة باستخدام EdgeTTS API (الطريقة المباشرة)
-  try {
-    console.log('محاولة 2: EdgeTTS API...');
-    const voice = isAr ? 'ar-EG-ShakirNeural' : 'en-US-AriaNeural';
-    const response = await fetch('https://edge-tts.vercel.app/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, rate: 0, volume: 0 })
-    });
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      S.ttsAudio = new Audio(url);
-      S.ttsSpeaking = true;
-      S.ttsAudio.onended = () => hideTTSBar();
-      S.ttsAudio.onerror = () => { hideTTSBar(); fallbackTTS(text, isAr); };
-      await S.ttsAudio.play();
-      return;
-    }
-  } catch(e) { console.warn('EdgeTTS API failed:', e); }
-  
-  // 3. المحاولة النهائية: استخدام Web Speech API
-  console.log('محاولة 3: Web Speech API (الملاذ الأخير)...');
-  fallbackTTS(text, isAr);
-}
-
-function fallbackTTS(text, isAr) {
-  if (!('speechSynthesis' in window)) { 
-    console.error('Web Speech API غير مدعوم');
-    hideTTSBar();
-    alert('❌ تعذر تشغيل الصوت. يرجى التحقق من اتصال الإنترنت أو تحديث المتصفح.');
-    return; 
-  }
-  
-  // تقسيم النص لأجزاء صغيرة لتحسين الأداء
-  const chunks = text.match(/.{1,150}/g) || [text];
-  let idx = 0;
-  S.ttsSpeaking = true;
-  
-  function speakChunk() {
-    if (idx >= chunks.length || !S.ttsSpeaking) { 
-      hideTTSBar(); 
-      return; 
-    }
-    const utterance = new SpeechSynthesisUtterance(chunks[idx]);
-    if (isAr) {
-      utterance.lang = 'ar-SA';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-    } else {
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-    }
-    utterance.onend = () => { idx++; speakChunk(); };
-    utterance.onerror = (err) => { 
-      console.error('SpeechSynthesis error:', err);
-      idx++; 
-      speakChunk(); 
-    };
-    S.synth.speak(utterance);
-  }
-  speakChunk();
-}
-
-function stopTTS() {
-  if(S.ttsAudio){ S.ttsAudio.pause(); S.ttsAudio=null; }
-  if(S.synth) S.synth.cancel();
-  S.ttsSpeaking=false;
-  hideTTSBar();
-}
-function hideTTSBar() { document.getElementById('ttsBar').classList.remove('show'); }
-
-async function spkW(word, btn) {
-  stopTTS();
-  btn.classList.add('pl');
-  await tts(word,'en');
-  setTimeout(()=>btn.classList.remove('pl'),2000);
-}
-async function speakAll() {
-  if(!S.lesson) return;
-  const btn=document.getElementById('spkallBtn');
-  if(S.ttsSpeaking){ stopTTS(); btn.textContent='🔊 استمع'; return; }
-  btn.textContent='⏸ إيقاف';
-  let t=`درس ${S.lesson.title}. `;
-  S.lesson.words.forEach(w=>{ t+=`${w.arabic}: ${w.english}. `; });
-  if(S.lesson.story_summary?.trim()) t+=`ملخص النص: ${S.lesson.story_summary}`;
-  await tts(t,'ar');
-  btn.textContent='🔊 استمع';
-}
-// ================== باقي دوال المراجعة والتقييم ==================
+// --- 5. REVIEW MODULE (MIC & QUESTIONS) ---
 function genQs() {
   if(!S.lesson?.words?.length) return;
   const ws=S.lesson.words; const q=[];
