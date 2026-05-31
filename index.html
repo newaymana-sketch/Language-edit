@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>مُعلّمي - نطق طبيعي باستخدام VoiPi</title>
+    <title>مُعلّمي - نطق طبيعي نهائي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* نفس الـ CSS السابق مع بعض التحسينات البسيطة */
         :root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--br:#1e2d45;--ac:#3b82f6;--ac2:#06b6d4;--gd:#f59e0b;--tx:#e2e8f0;--mu:#64748b;--gr:#10b981;--rd:#ef4444;--r:16px}
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
@@ -36,7 +35,7 @@
         .upl{border:2px dashed var(--br);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;background:var(--s1);margin-bottom:16px}
         .upl:hover{border-color:var(--ac);background:rgba(59,130,246,.05)}
         .upl .ico{font-size:44px;margin-bottom:10px}
-        .prev{border-radius:var(--r);overflow:hidden;margin-bottom:16px;display:none}
+        .prev{border-radius:var(--r);overflow:hidden;margin-bottom:16px;display:none;position:relative}
         .prev.show{display:block}
         .prev img{width:100%;display:block}
         .prev-ov{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:20px 16px 14px}
@@ -104,84 +103,78 @@
 <body>
 <div class="app">
     <div class="hdr">
-        <div class="logo">مُعلّمي<span>نطق طبيعي VoiPi</span></div>
-        <button class="gear" onclick="toggleS()">⚙️</button>
+        <div class="logo">مُعلّمي<span>نطق طبيعي متطور</span></div>
+        <button class="gear" onclick="toggleSettings()">⚙️</button>
     </div>
-
-    <div class="sbox" id="sbox">
-        <h3>🔑 إعدادات API</h3>
+    <div class="sbox" id="settingsBox">
         <div class="ig">
-            <label>🔑 Groq API Key (مطلوب لتحليل الصور)</label>
-            <input type="password" id="groqKey" placeholder="gsk_...">
+            <label>Groq API Key (مطلوب)</label>
+            <input type="password" id="groqKeyInput" placeholder="gsk_...">
         </div>
-        <button class="btn btn-blue" onclick="saveKey()">💾 حفظ المفتاح</button>
-        <button class="btn btn-green" onclick="testGroq()">🔍 اختبار المفتاح</button>
-        <div class="test-res" id="testRes"></div>
-        <div style="margin-top:12px; font-size:12px; color:#6ee7b7">✨ الصوت يعمل بمحرك VoiPi المتطور (جودة Edge/Google) بدون أي إعدادات إضافية.</div>
+        <button class="btn btn-blue" onclick="saveGroqKey()">💾 حفظ</button>
+        <button class="btn btn-green" onclick="testGroqKey()">🔍 اختبار</button>
+        <div class="test-res" id="testResult"></div>
+        <div style="font-size:12px;margin-top:12px;color:#6ee7b7">🎧 الصوت يعمل عبر أفضل محرك متاح تلقائياً (Edge/Google TTS مجاني)</div>
     </div>
-
     <div class="tabs">
-        <button class="tab on" onclick="switchTab('learn')">📚 تعلّم</button>
+        <button class="tab on" onclick="switchTab('learn')">📚 تعلم</button>
         <button class="tab" onclick="switchTab('review')">✏️ مراجعة</button>
     </div>
-
     <div id="learnTab">
-        <div class="upl" onclick="document.getElementById('imageInput').click()">
-            <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImage(event)">
+        <div class="upl" onclick="document.getElementById('imageFile').click()">
+            <input type="file" id="imageFile" accept="image/*" style="display:none" onchange="handleImage(event)">
             <div class="ico">📷</div>
             <h3>صوّر صفحة الدرس</h3>
-            <p>اضغط لاختيار صورة أو التقاطها</p>
+            <p>اضغط لاختيار صورة</p>
         </div>
         <div class="prev" id="previewContainer">
             <img id="previewImg" src="" alt="">
             <div class="prev-ov">
-                <button class="chg" onclick="document.getElementById('imageInput').click()">🔄 تغيير</button>
+                <button class="chg" onclick="document.getElementById('imageFile').click()">🔄 تغيير</button>
             </div>
         </div>
         <button class="abtn" id="analyzeBtn" onclick="analyzeLesson()" disabled>📖 اشرح لي الدرس</button>
         <div class="tts-bar" id="ttsBar"><div class="tts-dot"></div><span id="ttsStatus">جاري القراءة...</span><button class="tts-stop" onclick="stopSpeaking()">⏹</button></div>
         <div class="lbox" id="lessonBox">
-            <div class="lhd"><h2>📚 <span id="lessonTitle">الدرس</span></h2><button class="spkall" onclick="readAllLesson()">🔊 استمع</button></div>
+            <div class="lhd"><h2>📚 <span id="lessonTitle">الدرس</span></h2><button class="spkall" onclick="readFullLesson()">🔊 استمع</button></div>
             <div class="lcon" id="lessonContent"></div>
         </div>
         <div class="acts" id="lessonActions" style="display:none">
             <button class="act pri" onclick="switchTab('review'); startReview()">✏️ ابدأ المراجعة</button>
-            <button class="act" onclick="readAllLesson()">🔊 أعد القراءة</button>
+            <button class="act" onclick="readFullLesson()">🔊 أعد القراءة</button>
         </div>
     </div>
-
     <div id="reviewTab" class="hidden">
         <div id="noLessonMsg" style="text-align:center;padding:48px 20px;color:var(--mu)">
-            <div style="font-size:52px;margin-bottom:16px">📚</div>
-            <p>حلّل درساً أولاً من تبويب "تعلّم"</p>
+            <div style="font-size:52px">📚</div>
+            <p>حلل درساً أولاً من تبويب "تعلم"</p>
         </div>
         <div id="reviewBody" class="hidden">
-            <div class="pw"><div class="pi"><span id="qProgress">السؤال 1 من 10</span><span id="scoreDisplay">النتيجة: 0</span></div><div class="pb"><div class="pf" id="progressFill" style="width:0%"></div></div></div>
-            <div class="qc"><div class="qt" id="qType">اختبار المعنى</div><div class="qw" id="questionWord">word</div><div class="qq" id="questionText">ما معنى هذه الكلمة؟</div></div>
+            <div class="pw"><div class="pi"><span id="qCounter">السؤال 1 من 10</span><span id="scoreValue">النتيجة: 0</span></div><div class="pb"><div class="pf" id="progressFill" style="width:0%"></div></div></div>
+            <div class="qc"><div class="qt" id="qTypeLabel">اختبار المعنى</div><div class="qw" id="currentWord">word</div><div class="qq" id="currentQuestion">ما معنى هذه الكلمة؟</div></div>
             <div class="vs hidden" id="pronSection"><div class="vh">🎤 انطق الكلمة بوضوح</div><button class="rec" id="recBtn" onclick="toggleRecording()">🎤</button><div class="rl" id="recStatus">اضغط للبدء</div><div class="ev" id="pronAdvice"></div></div>
-            <div class="og hidden" id="choicesContainer"></div>
+            <div class="og hidden" id="choicesArea"></div>
             <div class="fb" id="feedbackMsg"></div>
             <button class="act pri hidden" id="nextBtn" onclick="nextQuestion()" style="width:100%">التالي ←</button>
         </div>
-        <div class="sccard" id="scoreCard"><div class="se" id="scoreEmoji">🎉</div><div class="sn" id="finalScore">0/10</div><div class="sl">نتيجتك النهائية</div><div class="sd" id="finalMsg"></div><div style="display:flex;gap:10px;margin-top:20px"><button class="act pri" onclick="restartReview()" style="flex:1">🔄 أعد المراجعة</button><button class="act" onclick="switchTab('learn')" style="flex:1">📚 درس جديد</button></div></div>
+        <div class="sccard" id="scoreCard"><div class="se" id="scoreEmoji">🎉</div><div class="sn" id="finalScoreText">0/10</div><div class="sl">نتيجتك النهائية</div><div class="sd" id="finalMessage"></div><div style="display:flex;gap:10px;margin-top:20px"><button class="act pri" onclick="restartReview()">🔄 أعد المراجعة</button><button class="act" onclick="switchTab('learn')">📚 درس جديد</button></div></div>
     </div>
 </div>
-<div class="ov" id="loadingOverlay"><div class="sp"></div><div id="loadingText" class="ot">جاري التحليل...</div></div>
+<div class="ov" id="loadingOverlay"><div class="sp"></div><div id="loadingMessage" class="ot">جاري التحليل...</div></div>
 
 <script type="importmap">
     {
         "imports": {
-            "voipi": "https://esm.run/voipi"
+            "voipi": "https://esm.run/voipi@1.3.8"
         }
     }
 </script>
 <script type="module">
-    // ---- استيراد Voipi ----
     import { VoiPi } from 'voipi';
-
-    // ---- حالة التطبيق (State) ----
-    const AppState = {
-        groqKey: localStorage.getItem('groqKey') || '',
+    
+    // ========== STATE ==========
+    const state = {
+        groqKey: localStorage.getItem('groq_key') || '',
         currentLesson: null,
         questions: [],
         qIndex: 0,
@@ -190,37 +183,34 @@
         isRecording: false,
         mediaRecorder: null,
         audioChunks: [],
-        ttsActive: false,
+        speaking: false,
         voipiInstance: null,
         synth: window.speechSynthesis,
         arVoice: null,
         enVoice: null
     };
-
-    // ---- تهيئة الصوت ----
+    
+    // ========== INIT ==========
     async function initVoipi() {
         try {
-            AppState.voipiInstance = new VoiPi();
-            console.log("VoiPi initialized successfully");
-        } catch(e) {
-            console.warn("VoiPi init failed, using fallback:", e);
-        }
+            state.voipiInstance = new VoiPi();
+            console.log("Voipi ready");
+        } catch(e) { console.warn("Voipi failed", e); }
     }
-    // أصوات المتصفح الاحتياطية
     function loadBrowserVoices() {
-        const voices = AppState.synth.getVoices();
-        AppState.arVoice = voices.find(v => v.lang === 'ar-SA' && v.localService) || voices.find(v => v.lang.startsWith('ar')) || null;
-        AppState.enVoice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang.startsWith('en')) || null;
+        const voices = state.synth.getVoices();
+        state.arVoice = voices.find(v => v.lang === 'ar-SA' && v.localService) || voices.find(v => v.lang.startsWith('ar')) || null;
+        state.enVoice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang.startsWith('en')) || null;
     }
-    if (AppState.synth.onvoiceschanged !== undefined) {
-        AppState.synth.onvoiceschanged = loadBrowserVoices;
-    }
+    if (state.synth.onvoiceschanged) state.synth.onvoiceschanged = loadBrowserVoices;
     loadBrowserVoices();
     initVoipi();
-
-    // ---- دوال مساعدة ----
+    
+    document.getElementById('groqKeyInput').value = state.groqKey;
+    
+    // ========== UI HELPERS ==========
     function showMessage(text, type) {
-        const el = document.getElementById('testRes');
+        const el = document.getElementById('testResult');
         el.style.display = 'block';
         el.style.background = type === 'ok' ? 'rgba(16,185,129,.1)' : (type === 'err' ? 'rgba(239,68,68,.1)' : 'rgba(59,130,246,.1)');
         el.style.border = `1px solid ${type === 'ok' ? 'rgba(16,185,129,.3)' : (type === 'err' ? 'rgba(239,68,68,.3)' : 'rgba(59,130,246,.3)')}`;
@@ -228,22 +218,31 @@
         el.textContent = text;
         setTimeout(() => el.style.display = 'none', 4000);
     }
-
-    function toggleS() {
-        document.getElementById('sbox').classList.toggle('open');
+    function showLoading(msg) { document.getElementById('loadingMessage').innerText = msg; document.getElementById('loadingOverlay').classList.add('show'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+    function toggleSettings() { document.getElementById('settingsBox').classList.toggle('open'); }
+    function switchTab(tab) {
+        const isLearn = tab === 'learn';
+        document.querySelectorAll('.tab').forEach((btn, i) => btn.classList.toggle('on', (isLearn && i===0) || (!isLearn && i===1)));
+        document.getElementById('learnTab').classList.toggle('hidden', !isLearn);
+        document.getElementById('reviewTab').classList.toggle('hidden', isLearn);
     }
-
-    function saveKey() {
-        const key = document.getElementById('groqKey').value.trim();
+    window.switchTab = switchTab;
+    window.toggleSettings = toggleSettings;
+    
+    // ========== GROQ KEY ==========
+    function saveGroqKey() {
+        const key = document.getElementById('groqKeyInput').value.trim();
         if (!key) { alert('أدخل مفتاح Groq'); return; }
-        AppState.groqKey = key;
-        localStorage.setItem('groqKey', key);
+        state.groqKey = key;
+        localStorage.setItem('groq_key', key);
         showMessage('✅ تم حفظ المفتاح', 'ok');
-        setTimeout(() => document.getElementById('sbox').classList.remove('open'), 1500);
+        setTimeout(() => document.getElementById('settingsBox').classList.remove('open'), 1500);
     }
-
-    async function testGroq() {
-        const key = document.getElementById('groqKey').value.trim();
+    window.saveGroqKey = saveGroqKey;
+    
+    async function testGroqKey() {
+        const key = document.getElementById('groqKeyInput').value.trim();
         if (!key) { alert('أدخل المفتاح أولاً'); return; }
         showMessage('⏳ جاري الاختبار...', 'info');
         try {
@@ -254,24 +253,14 @@
             });
             const data = await res.json();
             if (data.error) throw new Error(data.error.message);
-            AppState.groqKey = key;
-            localStorage.setItem('groqKey', key);
-            showMessage('✅ مفتاح Groq يعمل بشكل ممتاز!', 'ok');
-        } catch(e) {
-            showMessage(`❌ خطأ: ${e.message}`, 'err');
-        }
+            state.groqKey = key;
+            localStorage.setItem('groq_key', key);
+            showMessage('✅ مفتاح Groq يعمل!', 'ok');
+        } catch(e) { showMessage(`❌ خطأ: ${e.message}`, 'err'); }
     }
-
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach((btn, idx) => {
-            const isLearn = (tab === 'learn' && idx === 0) || (tab === 'review' && idx === 1);
-            btn.classList.toggle('on', isLearn);
-        });
-        document.getElementById('learnTab').classList.toggle('hidden', tab !== 'learn');
-        document.getElementById('reviewTab').classList.toggle('hidden', tab !== 'review');
-    }
-
-    // ---- معالجة الصورة ----
+    window.testGroqKey = testGroqKey;
+    
+    // ========== IMAGE HANDLING ==========
     function handleImage(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -287,10 +276,9 @@
                     else { w = Math.round(w * max / h); h = max; }
                 }
                 canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                AppState.imageBase64 = dataUrl.split(',')[1];
+                state.imageBase64 = dataUrl.split(',')[1];
                 document.getElementById('previewImg').src = dataUrl;
                 document.getElementById('previewContainer').classList.add('show');
                 document.querySelector('.upl').style.display = 'none';
@@ -300,70 +288,67 @@
         };
         reader.readAsDataURL(file);
     }
-
-    // ---- Groq API Call ----
-    async function groqAPI(messages, withImage = false) {
+    window.handleImage = handleImage;
+    
+    // ========== GROQ API ==========
+    async function groqRequest(messages, withImage = false) {
         const models = withImage ? ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'] : ['llama-3.1-8b-instant'];
         let lastError = '';
         for (const model of models) {
             try {
-                const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AppState.groqKey}` },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.groqKey}` },
                     body: JSON.stringify({ model, messages, max_tokens: 2000, temperature: 0.2 })
                 });
-                const data = await res.json();
+                const data = await resp.json();
                 if (data.error) { lastError = data.error.message; continue; }
                 return data.choices[0].message.content;
             } catch(e) { lastError = e.message; continue; }
         }
         throw new Error(lastError || 'فشل الاتصال بـ Groq');
     }
-
-    function parseJSONSafe(str) {
-        let cleaned = str.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        const firstBrace = cleaned.indexOf('{');
-        if (firstBrace > 0) cleaned = cleaned.slice(firstBrace);
-        const lastBrace = cleaned.lastIndexOf('}');
-        if (lastBrace > 0) cleaned = cleaned.slice(0, lastBrace + 1);
-        return JSON.parse(cleaned);
-    }
-
-    // ---- تحليل الدرس ----
+    
+    // ========== ANALYZE LESSON ==========
     async function analyzeLesson() {
-        if (!AppState.groqKey) { alert('يرجى إدخال مفتاح Groq في الإعدادات'); toggleS(); return; }
-        if (!AppState.imageBase64) { alert('اختر صورة أولاً'); return; }
-        showLoading('⏳ جاري قراءة وتحليل الدرس... قد يستغرق 20-40 ثانية');
+        if (!state.groqKey) { alert('يرجى إدخال مفتاح Groq ⚙️'); toggleSettings(); return; }
+        if (!state.imageBase64) { alert('اختر صورة أولاً'); return; }
+        showLoading('جاري تحليل الصورة واستخراج المفردات... قد يستغرق 20-40 ثانية');
         document.getElementById('analyzeBtn').disabled = true;
         stopSpeaking();
-        const prompt = `أنت خبير في تدريس اللغة الإنجليزية. حلل هذه الصفحة من كتاب مفردات بدقة. أخرج JSON فقط بالهيكل التالي (بدون أي نصوص إضافية):
+        const prompt = `أنت خبير في تدريس اللغة الإنجليزية. حلل هذه الصفحة من كتاب مفردات. أخرج JSON فقط بالهيكل التالي (بدون أي نصوص إضافية):
 {
   "title": "عنوان الدرس",
   "words": [{"english": "كلمة", "phonetic": "/نطق/", "arabic": "المعنى", "example": "جملة إنجليزية", "example_ar": "ترجمة الجملة"}],
-  "grammar_notes": ["ملاحظة نحوية 1"],
+  "grammar_notes": ["ملاحظة نحوية"],
   "story_summary": "ملخص النص إن وجد"
 }`;
         try {
-            const response = await groqAPI([
+            const response = await groqRequest([
                 { role: 'user', content: [
-                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${AppState.imageBase64}` } },
+                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${state.imageBase64}` } },
                     { type: 'text', text: prompt }
                 ] }
             ], true);
-            AppState.currentLesson = parseJSONSafe(response);
+            const clean = response.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+            const firstBrace = clean.indexOf('{');
+            const lastBrace = clean.lastIndexOf('}');
+            const jsonStr = clean.slice(firstBrace, lastBrace + 1);
+            state.currentLesson = JSON.parse(jsonStr);
             hideLoading();
             renderLesson();
             generateQuestions();
-            setTimeout(() => speakText(`أهلاً! سأشرح لك درس ${AppState.currentLesson.title}`, 'ar'), 500);
+            setTimeout(() => speakText(`أهلاً! سأشرح لك درس ${state.currentLesson.title}`, 'ar'), 600);
         } catch(err) {
             hideLoading();
             document.getElementById('analyzeBtn').disabled = false;
-            alert(`خطأ: ${err.message}\n\nتأكد من صحة مفتاح Groq ووضوح الصورة`);
+            alert(`خطأ: ${err.message}\nتأكد من صحة مفتاح Groq ووضوح الصورة`);
         }
     }
-
+    window.analyzeLesson = analyzeLesson;
+    
     function renderLesson() {
-        const lesson = AppState.currentLesson;
+        const lesson = state.currentLesson;
         document.getElementById('lessonTitle').innerHTML = lesson.title;
         let html = '';
         lesson.words.forEach((w, i) => {
@@ -388,65 +373,59 @@
         document.getElementById('lessonBox').classList.add('show');
         document.getElementById('lessonActions').style.display = 'flex';
     }
-
-    // ---- نظام الصوت عبر VoiPi (أساسي) مع احتياطي ----
+    
+    // ========== VOICE ENGINE (best quality) ==========
     async function speakText(text, lang = 'auto') {
         if (!text || !text.trim()) return;
         stopSpeaking();
         const isArabic = (lang === 'ar') || (lang === 'auto' && /[\u0600-\u06FF]/.test(text));
         document.getElementById('ttsStatus').innerHTML = isArabic ? '🔊 قراءة بالعربية...' : '🔊 قراءة بالإنجليزية...';
         document.getElementById('ttsBar').classList.add('show');
-
-        // المحاولة باستخدام VoiPi
-        if (AppState.voipiInstance) {
+        
+        // Try Voipi first (uses Edge TTS / Google TTS free)
+        if (state.voipiInstance) {
             try {
-                await AppState.voipiInstance.speak(text);
+                await state.voipiInstance.speak(text);
                 document.getElementById('ttsBar').classList.remove('show');
                 return;
-            } catch(e) {
-                console.warn("VoiPi error, falling back to Web Speech:", e);
-            }
+            } catch(e) { console.warn('Voipi error, fallback', e); }
         }
-
-        // الاحتياطي: Web Speech API
+        
+        // Fallback to Web Speech API with best available voice
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = isArabic ? 'ar-SA' : 'en-US';
             utterance.rate = 0.9;
             utterance.pitch = 1.0;
-            if (isArabic && AppState.arVoice) utterance.voice = AppState.arVoice;
-            if (!isArabic && AppState.enVoice) utterance.voice = AppState.enVoice;
-            AppState.ttsActive = true;
-            utterance.onend = () => { AppState.ttsActive = false; document.getElementById('ttsBar').classList.remove('show'); };
-            utterance.onerror = () => { AppState.ttsActive = false; document.getElementById('ttsBar').classList.remove('show'); };
-            AppState.synth.speak(utterance);
+            if (isArabic && state.arVoice) utterance.voice = state.arVoice;
+            if (!isArabic && state.enVoice) utterance.voice = state.enVoice;
+            state.speaking = true;
+            utterance.onend = () => { state.speaking = false; document.getElementById('ttsBar').classList.remove('show'); };
+            utterance.onerror = () => { state.speaking = false; document.getElementById('ttsBar').classList.remove('show'); };
+            state.synth.speak(utterance);
         } else {
             document.getElementById('ttsBar').classList.remove('show');
-            console.error("Web Speech API not supported");
         }
     }
-
+    
     function stopSpeaking() {
-        if (AppState.ttsActive) {
-            AppState.synth.cancel();
-            AppState.ttsActive = false;
-        }
+        if (state.speaking) state.synth.cancel();
+        state.speaking = false;
         document.getElementById('ttsBar').classList.remove('show');
     }
-
-    // ربط الدوال إلى النطاق العالمي لاستدعائها من onClick
+    window.stopSpeaking = stopSpeaking;
     window.speakSingleWord = (word) => speakText(word, 'en');
-    window.readAllLesson = () => {
-        if (!AppState.currentLesson) return;
-        let fullText = `درس ${AppState.currentLesson.title}. `;
-        AppState.currentLesson.words.forEach(w => { fullText += `${w.arabic}: ${w.english}. ${w.example}. `; });
-        if (AppState.currentLesson.story_summary) fullText += `ملخص: ${AppState.currentLesson.story_summary}`;
-        speakText(fullText, 'ar');
+    window.readFullLesson = () => {
+        if (!state.currentLesson) return;
+        let full = `درس ${state.currentLesson.title}. `;
+        state.currentLesson.words.forEach(w => { full += `${w.arabic}: ${w.english}. ${w.example}. `; });
+        if (state.currentLesson.story_summary) full += `ملخص: ${state.currentLesson.story_summary}`;
+        speakText(full, 'ar');
     };
-
-    // ---- أسئلة المراجعة ----
+    
+    // ========== QUESTIONS ==========
     function generateQuestions() {
-        const words = AppState.currentLesson.words;
+        const words = state.currentLesson.words;
         let qs = [];
         words.slice(0, 5).forEach(w => {
             let others = words.filter(x => x.arabic !== w.arabic).sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -456,183 +435,154 @@
         words.slice(0, 5).forEach(w => {
             qs.push({ type: 'pron', word: w.english, answer: w.english, wordObj: w });
         });
-        AppState.questions = qs.sort(() => 0.5 - Math.random()).slice(0, 10);
-        AppState.qIndex = 0;
-        AppState.score = 0;
+        state.questions = qs.sort(() => 0.5 - Math.random()).slice(0, 10);
+        state.qIndex = 0;
+        state.score = 0;
     }
-
+    
     function startReview() {
-        if (!AppState.currentLesson) return;
+        if (!state.currentLesson) return;
         document.getElementById('noLessonMsg').classList.add('hidden');
         document.getElementById('reviewBody').classList.remove('hidden');
         document.getElementById('scoreCard').classList.remove('show');
-        AppState.qIndex = 0;
-        AppState.score = 0;
+        state.qIndex = 0;
+        state.score = 0;
         showCurrentQuestion();
     }
-
+    window.startReview = startReview;
+    
     function showCurrentQuestion() {
-        const total = AppState.questions.length;
-        const idx = AppState.qIndex;
+        const total = state.questions.length;
+        const idx = state.qIndex;
         if (idx >= total) { showFinalScore(); return; }
-        const q = AppState.questions[idx];
-        document.getElementById('qProgress').innerHTML = `السؤال ${idx+1} من ${total}`;
-        document.getElementById('scoreDisplay').innerHTML = `النتيجة: ${Math.round(AppState.score)}`;
+        const q = state.questions[idx];
+        document.getElementById('qCounter').innerHTML = `السؤال ${idx+1} من ${total}`;
+        document.getElementById('scoreValue').innerHTML = `النتيجة: ${Math.round(state.score)}`;
         document.getElementById('progressFill').style.width = `${(idx/total)*100}%`;
         document.getElementById('feedbackMsg').classList.remove('show');
         document.getElementById('nextBtn').classList.add('hidden');
         document.getElementById('pronAdvice').classList.remove('show');
         stopSpeaking();
-
+        
         if (q.type === 'mcq') {
-            document.getElementById('qType').innerHTML = '🎯 اختر المعنى الصحيح';
-            document.getElementById('questionWord').innerHTML = q.word;
-            document.getElementById('questionText').innerHTML = 'ما معنى هذه الكلمة؟';
+            document.getElementById('qTypeLabel').innerHTML = '🎯 اختر المعنى الصحيح';
+            document.getElementById('currentWord').innerHTML = q.word;
+            document.getElementById('currentQuestion').innerHTML = 'ما معنى هذه الكلمة؟';
             document.getElementById('pronSection').classList.add('hidden');
-            document.getElementById('choicesContainer').classList.remove('hidden');
+            document.getElementById('choicesArea').classList.remove('hidden');
             let choicesHtml = '';
             q.options.forEach(opt => {
-                const safeOpt = opt.replace(/'/g, "\\'");
-                choicesHtml += `<button class="op" onclick="checkAnswer('${safeOpt}', this)">${opt}</button>`;
+                const safe = opt.replace(/'/g, "\\'");
+                choicesHtml += `<button class="op" onclick="checkAnswer('${safe}', this)">${opt}</button>`;
             });
-            document.getElementById('choicesContainer').innerHTML = choicesHtml;
+            document.getElementById('choicesArea').innerHTML = choicesHtml;
             speakText(q.word, 'en');
         } else {
-            document.getElementById('qType').innerHTML = '🎤 تحقق من النطق';
-            document.getElementById('questionWord').innerHTML = q.word;
-            document.getElementById('questionText').innerHTML = q.wordObj.phonetic || 'انطق الكلمة بوضوح';
+            document.getElementById('qTypeLabel').innerHTML = '🎤 تحقق من النطق';
+            document.getElementById('currentWord').innerHTML = q.word;
+            document.getElementById('currentQuestion').innerHTML = q.wordObj.phonetic || 'انطق الكلمة بوضوح';
             document.getElementById('pronSection').classList.remove('hidden');
-            document.getElementById('choicesContainer').classList.add('hidden');
+            document.getElementById('choicesArea').classList.add('hidden');
             document.getElementById('recStatus').innerHTML = 'اضغط للتسجيل';
             document.getElementById('recBtn').classList.remove('go');
             document.getElementById('recBtn').innerHTML = '🎤';
             speakText(q.word, 'en');
         }
     }
-
-    window.checkAnswer = (selected, btnElement) => {
-        const q = AppState.questions[AppState.qIndex];
-        document.querySelectorAll('.op').forEach(btn => btn.disabled = true);
+    
+    window.checkAnswer = (selected, btn) => {
+        const q = state.questions[state.qIndex];
+        document.querySelectorAll('.op').forEach(b => b.disabled = true);
         if (selected === q.answer) {
-            btnElement.classList.add('ok');
-            AppState.score++;
+            btn.classList.add('ok');
+            state.score++;
             showFeedback('✅ ممتاز! إجابة صحيحة', 'ok');
             speakText('ممتاز، إجابة صحيحة', 'ar');
         } else {
-            btnElement.classList.add('no');
-            document.querySelectorAll('.op').forEach(btn => {
-                if (btn.textContent === q.answer) btn.classList.add('ok');
-            });
+            btn.classList.add('no');
+            document.querySelectorAll('.op').forEach(b => { if (b.textContent === q.answer) b.classList.add('ok'); });
             showFeedback(`❌ الإجابة الصحيحة: ${q.answer}`, 'err');
             speakText(`الإجابة الصحيحة هي ${q.answer}`, 'ar');
         }
         document.getElementById('nextBtn').classList.remove('hidden');
-        document.getElementById('scoreDisplay').innerHTML = `النتيجة: ${Math.round(AppState.score)}`;
+        document.getElementById('scoreValue').innerHTML = `النتيجة: ${Math.round(state.score)}`;
     };
-
-    function nextQuestion() {
-        AppState.qIndex++;
-        showCurrentQuestion();
-    }
-
-    // ---- تسجيل الصوت للنطق ----
+    
+    function nextQuestion() { state.qIndex++; showCurrentQuestion(); }
+    window.nextQuestion = nextQuestion;
+    
+    // ========== RECORDING ==========
     async function toggleRecording() {
-        if (AppState.isRecording) {
-            if (AppState.mediaRecorder && AppState.mediaRecorder.state === 'recording') {
-                AppState.mediaRecorder.stop();
-            }
+        if (state.isRecording) {
+            if (state.mediaRecorder && state.mediaRecorder.state === 'recording') state.mediaRecorder.stop();
             return;
         }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            AppState.mediaRecorder = new MediaRecorder(stream);
-            AppState.audioChunks = [];
-            AppState.mediaRecorder.ondataavailable = (e) => AppState.audioChunks.push(e.data);
-            AppState.mediaRecorder.onstop = () => processRecording();
-            AppState.mediaRecorder.start();
-            AppState.isRecording = true;
+            state.mediaRecorder = new MediaRecorder(stream);
+            state.audioChunks = [];
+            state.mediaRecorder.ondataavailable = e => state.audioChunks.push(e.data);
+            state.mediaRecorder.onstop = () => processRecording();
+            state.mediaRecorder.start();
+            state.isRecording = true;
             document.getElementById('recBtn').classList.add('go');
             document.getElementById('recBtn').innerHTML = '⏹';
             document.getElementById('recStatus').innerHTML = 'جاري التسجيل... اضغط للإيقاف';
-        } catch(e) {
-            alert('الرجاء السماح بالوصول إلى الميكروفون');
-        }
+        } catch(e) { alert('الرجاء السماح بالوصول إلى الميكروفون'); }
     }
-
+    window.toggleRecording = toggleRecording;
+    
     async function processRecording() {
-        if (!AppState.audioChunks.length) return;
-        const audioBlob = new Blob(AppState.audioChunks, { type: 'audio/webm' });
-        AppState.isRecording = false;
+        if (!state.audioChunks.length) return;
+        state.isRecording = false;
         document.getElementById('recBtn').classList.remove('go');
         document.getElementById('recBtn').innerHTML = '🎤';
         document.getElementById('recStatus').innerHTML = 'جاري التقييم...';
-        const q = AppState.questions[AppState.qIndex];
-        // طلب نصائح النطق من Groq (بدون تحليل الصوت الفعلي، لكنه مفيد تعليمياً)
+        const q = state.questions[state.qIndex];
         showLoading('🎤 جاري تقديم نصائح النطق...');
         try {
-            const tips = await groqAPI([{ role: 'user', content: `قدم نصائح نطق مشجعة بالعربية لكلمة "${q.word}" في 3 جمل: 1- كيفية النطق بالحروف العربية 2- الصوت الصعب وكيفية تخطيه 3- جملة تشجيعية` }], false);
+            const tips = await groqRequest([{ role: 'user', content: `قدم نصائح نطق مشجعة بالعربية لكلمة "${q.word}" في 3 جمل: 1- كيفية النطق بالحروف العربية 2- الصوت الصعب وكيفية تخطيه 3- جملة تشجيعية` }], false);
             document.getElementById('pronAdvice').innerHTML = `<strong>💡 نصائح النطق:</strong><br>${tips}`;
             document.getElementById('pronAdvice').classList.add('show');
             speakText(tips, 'ar');
-            AppState.score += 0.5;
+            state.score += 0.5;
         } catch(e) {
             document.getElementById('pronAdvice').innerHTML = `<strong>💡 نصيحة:</strong><br>حاول نطق "${q.word}" ببطء، ركز على مخارج الحروف. الممارسة تصنع الفرق!`;
             document.getElementById('pronAdvice').classList.add('show');
-            AppState.score += 0.5;
+            state.score += 0.5;
         }
         hideLoading();
         document.getElementById('recStatus').innerHTML = 'اضغط للتسجيل مجدداً';
         document.getElementById('nextBtn').classList.remove('hidden');
-        document.getElementById('scoreDisplay').innerHTML = `النتيجة: ${Math.round(AppState.score)}`;
+        document.getElementById('scoreValue').innerHTML = `النتيجة: ${Math.round(state.score)}`;
     }
-
-    // ---- النتيجة النهائية ----
-    function showFinalScore() {
-        document.getElementById('reviewBody').classList.add('hidden');
-        document.getElementById('scoreCard').classList.add('show');
-        const total = AppState.questions.length;
-        const scoreRounded = Math.round(AppState.score);
-        const percent = Math.round((scoreRounded / total) * 100);
-        document.getElementById('finalScore').innerHTML = `${scoreRounded}/${total}`;
-        let msg = '';
-        if (percent >= 80) msg = `🏆 رائع جداً! ${percent}% أتقنت الدرس بامتياز!`;
-        else if (percent >= 60) msg = `⭐ جيد جداً! ${percent}% ، راجع الكلمات الصعبة.`;
-        else msg = `💪 لا تيأس! ${percent}% ، راجع الدرس مرة أخرى.`;
-        document.getElementById('finalMsg').innerHTML = msg;
-        speakText(msg, 'ar');
-    }
-
-    function restartReview() {
-        if (!AppState.currentLesson) return;
-        generateQuestions();
-        startReview();
-    }
-
-    // دوال مساعدة للتحميل
-    function showLoading(msg) {
-        document.getElementById('loadingText').innerHTML = msg;
-        document.getElementById('loadingOverlay').classList.add('show');
-    }
-    function hideLoading() {
-        document.getElementById('loadingOverlay').classList.remove('show');
-    }
+    
     function showFeedback(msg, type) {
         const fb = document.getElementById('feedbackMsg');
         fb.textContent = msg;
         fb.className = `fb show ${type}`;
     }
-
-    // ربط دوال إضافية
-    window.switchTab = switchTab;
-    window.toggleS = toggleS;
-    window.saveKey = saveKey;
-    window.testGroq = testGroq;
-    window.handleImage = handleImage;
-    window.analyzeLesson = analyzeLesson;
-    window.startReview = startReview;
-    window.nextQuestion = nextQuestion;
-    window.toggleRecording = toggleRecording;
-    window.stopSpeaking = stopSpeaking;
+    
+    function showFinalScore() {
+        document.getElementById('reviewBody').classList.add('hidden');
+        document.getElementById('scoreCard').classList.add('show');
+        const total = state.questions.length;
+        const final = Math.round(state.score);
+        const percent = Math.round((final / total) * 100);
+        document.getElementById('finalScoreText').innerHTML = `${final}/${total}`;
+        let message = '';
+        if (percent >= 80) message = `🏆 رائع! ${percent}% أتقنت الدرس بامتياز.`;
+        else if (percent >= 60) message = `⭐ جيد جداً! ${percent}% ، راجع الكلمات الصعبة.`;
+        else message = `💪 لا تيأس! ${percent}% ، راجع الدرس مرة أخرى.`;
+        document.getElementById('finalMessage').innerHTML = message;
+        speakText(message, 'ar');
+    }
+    
+    function restartReview() {
+        if (!state.currentLesson) return;
+        generateQuestions();
+        startReview();
+    }
     window.restartReview = restartReview;
 </script>
 </body>
