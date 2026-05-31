@@ -128,7 +128,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="sbox" id="sbox">
     <h3>🔑 إعدادات API</h3>
-    <div class="sbox-info">🔊 الصوت الآن يعمل تلقائياً بجودة عالية (Edge TTS) – لا تحتاج لأي مفتاح. فقط أدخل مفتاح Groq للتحليل.</div>
+    <div class="sbox-info">🔊 الصوت الآن يعمل تلقائياً بأفضل جودة ممكنة - يختار الخدمة الأنسب تلقائياً</div>
     <div class="ig">
       <label>Groq API Key (مطلوب)</label>
       <input type="password" id="groqKey" placeholder="gsk_...">
@@ -318,49 +318,101 @@ function renderLesson() {
   document.getElementById('lbox').classList.add('show');
   document.getElementById('lacts').style.display='flex';
 }
-// ================== TTS باستخدام Edge المجاني عالي الجودة ==================
+
+// ================== نظام الصوت الذكي متعدد المستويات ==================
 async function tts(text, lang='auto') {
   if(!text?.trim()) return;
   stopTTS();
   const isAr = lang==='ar' || (lang==='auto' && /[\u0600-\u06FF]/.test(text));
   document.getElementById('ttsTxt').textContent = isAr ? '🔊 جاري القراءة بالعربية...' : '🔊 جاري القراءة بالإنجليزية...';
   document.getElementById('ttsBar').classList.add('show');
+  
+  // 1. المحاولة باستخدام VoiPi API (وكيل لـ Edge TTS)
   try {
-    const voice = isAr ? 'ar-SA-HamedNeural' : 'en-US-AnaNeural';
+    console.log('محاولة 1: VoiPi API...');
+    const voice = isAr ? 'ar-EG-ShakirNeural' : 'en-US-JennyNeural';
+    const response = await fetch('https://voipi.vercel.app/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice, format: 'mp3' })
+    });
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      S.ttsAudio = new Audio(url);
+      S.ttsSpeaking = true;
+      S.ttsAudio.onended = () => hideTTSBar();
+      S.ttsAudio.onerror = () => { hideTTSBar(); fallbackTTS(text, isAr); };
+      await S.ttsAudio.play();
+      return;
+    }
+  } catch(e) { console.warn('VoiPi API failed:', e); }
+  
+  // 2. المحاولة باستخدام EdgeTTS API (الطريقة المباشرة)
+  try {
+    console.log('محاولة 2: EdgeTTS API...');
+    const voice = isAr ? 'ar-EG-ShakirNeural' : 'en-US-AriaNeural';
     const response = await fetch('https://edge-tts.vercel.app/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice, rate: 0, volume: 0 })
     });
-    if (!response.ok) throw new Error('Edge TTS failed');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    S.ttsAudio = new Audio(url);
-    S.ttsSpeaking = true;
-    S.ttsAudio.onended = () => hideTTSBar();
-    S.ttsAudio.onerror = () => { hideTTSBar(); ttsBrowser(text, isAr); };
-    await S.ttsAudio.play();
-  } catch(e) {
-    console.warn('Edge TTS error, fallback to browser', e);
-    ttsBrowser(text, isAr);
-  }
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      S.ttsAudio = new Audio(url);
+      S.ttsSpeaking = true;
+      S.ttsAudio.onended = () => hideTTSBar();
+      S.ttsAudio.onerror = () => { hideTTSBar(); fallbackTTS(text, isAr); };
+      await S.ttsAudio.play();
+      return;
+    }
+  } catch(e) { console.warn('EdgeTTS API failed:', e); }
+  
+  // 3. المحاولة النهائية: استخدام Web Speech API
+  console.log('محاولة 3: Web Speech API (الملاذ الأخير)...');
+  fallbackTTS(text, isAr);
 }
-function ttsBrowser(text, isAr) {
-  if (!('speechSynthesis' in window)) { hideTTSBar(); return; }
+
+function fallbackTTS(text, isAr) {
+  if (!('speechSynthesis' in window)) { 
+    console.error('Web Speech API غير مدعوم');
+    hideTTSBar();
+    alert('❌ تعذر تشغيل الصوت. يرجى التحقق من اتصال الإنترنت أو تحديث المتصفح.');
+    return; 
+  }
+  
+  // تقسيم النص لأجزاء صغيرة لتحسين الأداء
   const chunks = text.match(/.{1,150}/g) || [text];
-  let idx=0;
-  S.ttsSpeaking=true;
-  function speakChunk(){
-    if(idx>=chunks.length || !S.ttsSpeaking){ hideTTSBar(); return; }
-    const u=new SpeechSynthesisUtterance(chunks[idx]);
-    if(isAr){ u.lang='ar-SA'; u.rate=0.75; u.pitch=1.05; if(S.arVoice) u.voice=S.arVoice; }
-    else{ u.lang='en-US'; u.rate=0.82; u.pitch=1.0; if(S.enVoice) u.voice=S.enVoice; }
-    u.onend=()=>{ idx++; speakChunk(); };
-    u.onerror=()=>{ idx++; speakChunk(); };
-    S.synth.speak(u);
+  let idx = 0;
+  S.ttsSpeaking = true;
+  
+  function speakChunk() {
+    if (idx >= chunks.length || !S.ttsSpeaking) { 
+      hideTTSBar(); 
+      return; 
+    }
+    const utterance = new SpeechSynthesisUtterance(chunks[idx]);
+    if (isAr) {
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+    } else {
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+    }
+    utterance.onend = () => { idx++; speakChunk(); };
+    utterance.onerror = (err) => { 
+      console.error('SpeechSynthesis error:', err);
+      idx++; 
+      speakChunk(); 
+    };
+    S.synth.speak(utterance);
   }
   speakChunk();
 }
+
 function stopTTS() {
   if(S.ttsAudio){ S.ttsAudio.pause(); S.ttsAudio=null; }
   if(S.synth) S.synth.cancel();
@@ -368,6 +420,7 @@ function stopTTS() {
   hideTTSBar();
 }
 function hideTTSBar() { document.getElementById('ttsBar').classList.remove('show'); }
+
 async function spkW(word, btn) {
   stopTTS();
   btn.classList.add('pl');
@@ -385,6 +438,7 @@ async function speakAll() {
   await tts(t,'ar');
   btn.textContent='🔊 استمع';
 }
+// ================== باقي دوال المراجعة والتقييم ==================
 function genQs() {
   if(!S.lesson?.words?.length) return;
   const ws=S.lesson.words; const q=[];
